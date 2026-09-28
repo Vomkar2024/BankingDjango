@@ -1,3 +1,7 @@
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
 # Django 6.1+ expects MySQL 8.4+, this allows MySQL 8.0 compatibility
 try:
     from django.db.backends.mysql.features import DatabaseFeatures
@@ -7,3 +11,4 @@ try:
     )
 except ImportError:
     pass
+
