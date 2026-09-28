@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Cards Management | OMOM Bank{% endblock %}
+
+{% block content %}
+<div class="dashboard-launch-wrapper">
+  <div class="dashboard-header">
+    <div>
+      <h1 class="greeting-title">
+        <i class="fa-solid fa-credit-card" style="color: var(--accent-cyan); font-size: 1.6rem;"></i>
+        <span>Cards & Digital Security</span>
+      </h1>
+      <p class="greeting-sub">Manage card limits, freeze/unfreeze cards instantly, and toggle contactless limits.</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem;">
+    {% for card in cards %}
+    <div class="content-box">
+      <!-- Card Visual -->
+      <div class="debit-card-visual" style="margin-bottom: 1.25rem;">
+        <div class="card-top-row">
+          <div class="bank-tag">
+            <i class="fa-solid fa-building-columns"></i> OMOM BANK
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            {% if card.is_frozen %}
+            <span style="background: rgba(244, 63, 94, 0.3); border: 1px solid #f43f5e; color: #fff; font-size: 0.65rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 700;">FROZEN</span>
+            {% endif %}
+            <i class="fa-solid fa-wifi" style="transform: rotate(90deg); opacity: 0.8; font-size: 0.9rem;"></i>
+            <div class="card-chip"></div>
+          </div>
+        </div>
+
+        <div class="card-number-display">
+          {{ card.full_masked }}
+        </div>
+
+        <div class="card-bottom-row">
+          <div class="card-holder">
+            <span class="card-label-small">Card Holder</span>
+            <span class="card-name-val">{{ card.card_holder_name }}</span>
+          </div>
+          <div class="card-expiry">
+            <span class="card-label-small">Expires</span>
+            <span class="card-expiry-val">{{ card.expiry_display }}</span>
+          </div>
+          <div class="network-logo-badge">
+            {% if card.network == 'visa' %}VISA{% elif card.network == 'mastercard' %}Mastercard{% else %}RuPay{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Card Security Controls</h3>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        
+        <!-- Freeze Toggle -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-md);">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem;">Instant Card Freeze</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Temporarily block all POS, ATM & Online charges</div>
+          </div>
+          <form action="{% url 'toggle_card_freeze' card.id %}" method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-card-toggle {% if card.is_frozen %}frozen{% endif %}" style="width: auto; padding: 0.4rem 0.85rem;">
+              <i class="fa-solid fa-snowflake"></i>
+              <span>{% if card.is_frozen %}Unfreeze{% else %}Freeze{% endif %}</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Contactless Toggle -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-md);">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem;">Contactless Tap & Pay (NFC)</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Enable tap to pay up to ₹5,000 without PIN</div>
+          </div>
+          <form action="{% url 'toggle_contactless' card.id %}" method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-card-toggle" style="width: auto; padding: 0.4rem 0.85rem;">
+              <i class="fa-solid fa-wifi"></i>
+              <span>{% if card.contactless_enabled %}Enabled{% else %}Disabled{% endif %}</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Daily Limit -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-md);">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem;">Daily Domestic Limit</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Max daily POS & ATM spend</div>
+          </div>
+          <span style="font-weight: 700; color: var(--accent-cyan);">{{ card.formatted_limit }}</span>
+        </div>
+
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | OMOM Bank{% endblock %}
+
+{% block content %}
+<!-- Dashboard Launch Section -->
+<div class="dashboard-launch-wrapper">
+
+  <!-- Greeting & Overview Header -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="greeting-title" id="greeting-heading">
+        <span>{{ greeting }}, {{ user_name }}</span>
+        <span style="font-size: 1.5rem;">👋</span>
+      </h1>
+      <p class="greeting-sub">Here's your account overview and financial activity</p>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <div class="header-meta-pill">
+        <span class="status-indicator"></span>
+        <span>Secure Core Banking</span>
+      </div>
+      <div class="header-meta-pill">
+        <i class="fa-solid fa-clock" style="color: var(--accent-cyan);"></i>
+        <span>{{ "now"|date:"D, d M Y" }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Balances Row -->
+  <div class="balances-grid">
+    <!-- Current Balance Card -->
+    <div class="balance-card primary-balance" id="card-current-balance">
+      <div class="balance-header">
+        <span class="balance-label">Current Balance</span>
+        <span class="balance-pill">{{ account.get_account_type_display }}</span>
+      </div>
+      <div class="balance-amount" id="val-current-balance">
+        {{ account.formatted_current_balance }}
+      </div>
+      <div class="balance-footer">
+        <span>Account No:</span>
+        <span class="account-num-badge" data-copy="{{ account.account_number }}" title="Click to copy full number">
+          <span>{{ account.masked_account_number }}</span>
+          <i class="fa-regular fa-copy"></i>
+        </span>
+      </div>
+    </div>
+
+    <!-- Available Balance Card -->
+    <div class="balance-card" id="card-available-balance">
+      <div class="balance-header">
+        <span class="balance-label">Available Balance</span>
+        <span class="balance-pill emerald">Ready for Use</span>
+      </div>
+      <div class="balance-amount" id="val-available-balance" style="color: var(--accent-emerald);">
+        {{ account.formatted_available_balance }}
+      </div>
+      <div class="balance-footer">
+        <span>Monthly Outflow:</span>
+        <span style="font-weight: 600; color: var(--text-primary);">{{ month_expense }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions Bar -->
+  <section class="section-wrapper">
+    <div class="section-header-row">
+      <h2 class="section-title">
+        <i class="fa-solid fa-bolt" style="color: var(--accent-cyan);"></i>
+        <span>Quick Actions</span>
+      </h2>
+      <span style="font-size: 0.8rem; color: var(--text-muted);">Instant zero-fee transactions</span>
+    </div>
+
+    <div class="quick-actions-bar">
+      <!-- Transfer Button -->
+      <button class="action-card-btn" data-open-modal="transferModal" id="quick-action-transfer">
+        <div class="action-icon-circle icon-blue">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </div>
+        <span class="action-label">Transfer</span>
+        <span class="action-sub">To Any Account</span>
+      </button>
+
+      <!-- Pay Bill Button -->
+      <button class="action-card-btn" data-open-modal="payBillModal" id="quick-action-pay-bill">
+        <div class="action-icon-circle icon-amber">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+        <span class="action-label">Pay Bill</span>
+        <span class="action-sub">Electricity & Utilities</span>
+      </button>
+
+      <!-- Deposit Button -->
+      <button class="action-card-btn" data-open-modal="depositModal" id="quick-action-deposit">
+        <div class="action-icon-circle icon-emerald">
+          <i class="fa-solid fa-circle-plus"></i>
+        </div>
+        <span class="action-label">Deposit</span>
+        <span class="action-sub">Instant Top-up</span>
+      </button>
+
+      <!-- Withdraw Button -->
+      <button class="action-card-btn" data-open-modal="withdrawModal" id="quick-action-withdraw">
+        <div class="action-icon-circle icon-purple">
+          <i class="fa-solid fa-money-bill-transfer"></i>
+        </div>
+        <span class="action-label">Withdraw</span>
+        <span class="action-sub">ATM Cash Code</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Content Grid: Recent Transactions + Side (Cards & Loans) -->
+  <div class="dashboard-main-grid">
+
+    <!-- Column 1: Recent Transactions -->
+    <div class="content-box">
+      <div class="section-header-row">
+        <h2 class="section-title">
+          <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-cyan);"></i>
+          <span>Recent Transactions</span>
+        </h2>
+        <a href="{% url 'transactions_view' %}" class="section-link">
+          <span>View Statement</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="transaction-list">
+        {% if transactions %}
+          {% for txn in transactions %}
+          <div class="transaction-item" id="txn-{{ txn.id }}">
+            <div class="txn-left">
+              <div class="txn-icon {{ txn.transaction_type }}">
+                {% if txn.category == 'shopping' %}
+                <i class="fa-solid fa-bag-shopping"></i>
+                {% elif txn.category == 'salary' %}
+                <i class="fa-solid fa-arrow-down-left"></i>
+                {% elif txn.category == 'utilities' %}
+                <i class="fa-solid fa-bolt"></i>
+                {% elif txn.category == 'dining' %}
+                <i class="fa-solid fa-utensils"></i>
+                {% elif txn.category == 'entertainment' %}
+                <i class="fa-solid fa-film"></i>
+                {% elif txn.category == 'transfer' %}
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                {% elif txn.category == 'deposit' %}
+                <i class="fa-solid fa-circle-arrow-down"></i>
+                {% elif txn.category == 'withdrawal' %}
+                <i class="fa-solid fa-money-bill-wave"></i>
+                {% else %}
+                <i class="fa-solid fa-receipt"></i>
+                {% endif %}
+              </div>
+              <div class="txn-details">
+                <div class="txn-title">{{ txn.title }}</div>
+                <div class="txn-meta">
+                  <span class="txn-badge">{{ txn.get_category_display }}</span>
+                  <span>{{ txn.created_at|date:"d M, h:i A" }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="txn-right">
+              <div class="txn-amount {{ txn.transaction_type }}">
+                {{ txn.formatted_amount }}
+              </div>
+              <div class="txn-date" style="font-family: var(--font-mono); font-size: 0.72rem;">
+                Ref: {{ txn.reference_id|slice:":10" }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+            <i class="fa-solid fa-receipt" style="font-size: 2.5rem; opacity: 0.4; margin-bottom: 0.75rem;"></i>
+            <p>No transactions yet for this account.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Quick Spending Visual Mini-Bar -->
+      <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--text-secondary);">
+        <div>
+          <span>This Month's Inflow:</span>
+          <span style="color: var(--accent-emerald); font-weight: 700; margin-left: 0.25rem;">+{{ month_income }}</span>
+        </div>
+        <div>
+          <span>This Month's Outflow:</span>
+          <span style="color: var(--accent-rose); font-weight: 700; margin-left: 0.25rem;">-{{ month_expense }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Column 2: Your Cards & Loans -->
+    <div class="side-stack">
+
+      <!-- Your Cards Section -->
+      <div class="content-box" style="padding: 1.25rem;">
+        <div class="section-header-row" style="margin-bottom: 0.85rem;">
+          <h2 class="section-title">
+            <i class="fa-solid fa-credit-card" style="color: var(--accent-cyan);"></i>
+            <span>Your Cards</span>
+          </h2>
+          <a href="{% url 'cards_view' %}" class="section-link">Manage</a>
+        </div>
+
+        {% if cards %}
+          {% with card=cards.0 %}
+          <!-- Realistic Styled Banking Card -->
+          <div class="debit-card-visual" id="active-debit-card">
+            <div class="card-top-row">
+              <div class="bank-tag">
+                <i class="fa-solid fa-building-columns"></i> OMOM BANK
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fa-solid fa-wifi" style="transform: rotate(90deg); opacity: 0.8; font-size: 0.9rem;"></i>
+                <div class="card-chip"></div>
+              </div>
+            </div>
+
+            <div class="card-number-display" id="card-number-masked">
+              {{ card.full_masked }}
+            </div>
+
+            <div class="card-bottom-row">
+              <div class="card-holder">
+                <span class="card-label-small">Card Holder</span>
+                <span class="card-name-val">{{ card.card_holder_name }}</span>
+              </div>
+              <div class="card-expiry">
+                <span class="card-label-small">Expires</span>
+                <span class="card-expiry-val">{{ card.expiry_display }}</span>
+              </div>
+              <div class="network-logo-badge">
+                {% if card.network == 'visa' %}
+                VISA
+                {% elif card.network == 'mastercard' %}
+                <span style="color: #ea580c;">master</span>card
+                {% else %}
+                RuPay
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Action Controls -->
+          <div class="card-action-bar">
+            <form action="{% url 'toggle_card_freeze' card.id %}" method="POST" style="flex: 1;">
+              {% csrf_token %}
+              <button type="submit" class="btn-card-toggle {% if card.is_frozen %}frozen{% endif %}" id="btn-toggle-freeze">
+                <i class="fa-solid fa-snowflake"></i>
+                <span>{% if card.is_frozen %}Unlock Card{% else %}Lock Card{% endif %}</span>
+              </button>
+            </form>
+            <a href="{% url 'cards_view' %}" class="btn-card-toggle" style="text-decoration: none;" id="btn-manage-card">
+              <i class="fa-solid fa-sliders"></i>
+              <span>Manage Card</span>
+            </a>
+          </div>
+          {% endwith %}
+        {% else %}
+          <p style="color: var(--text-muted); font-size: 0.85rem;">No active cards found.</p>
+        {% endif %}
+      </div>
+
+      <!-- Loans Section -->
+      <div class="loan-card-box">
+        <div class="loan-header">
+          <h2 class="section-title" style="font-size: 1rem;">
+            <i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent-emerald);"></i>
+            <span>Loans</span>
+          </h2>
+          <a href="{% url 'loans_view' %}" class="section-link">View Loan</a>
+        </div>
+
+        {% if loans %}
+          {% with loan=loans.0 %}
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+            {{ loan.get_loan_type_display }} &bull; {{ loan.account_number }}
+          </div>
+          <div class="loan-amount-rem">
+            {{ loan.formatted_remaining }} <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">remaining</span>
+          </div>
+
+          <!-- Repayment Progress Bar -->
+          <div class="progress-track" title="{{ loan.progress_percentage }}% repaid">
+            <div class="progress-fill" style="width: {{ loan.progress_percentage }}%;"></div>
+          </div>
+
+          <div class="loan-meta-row">
+            <div>
+              <span>Monthly EMI:</span>
+              <strong style="color: var(--text-primary); margin-left: 0.25rem;">{{ loan.formatted_emi }}</strong>
+            </div>
+            <div>
+              <span>Next Due:</span>
+              <strong style="color: var(--accent-cyan); margin-left: 0.25rem;">{{ loan.next_due_date|date:"d M Y" }}</strong>
+            </div>
+          </div>
+          {% endwith %}
+        {% else %}
+          <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+            No active loans. Pre-approved for ₹5,00,000 instant personal loan.
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Need help? Support Banner -->
+  <section class="support-banner-card" id="support-banner">
+    <div class="support-left">
+      <div class="support-icon-halo">
+        <i class="fa-solid fa-comments" style="font-size: 1.5rem;"></i>
+      </div>
+      <div>
+        <h3 class="support-heading">Need help? We're here 24x7</h3>
+        <p class="support-text">Our dedicated relationship managers and support team are always on standby to assist you.</p>
+      </div>
+    </div>
+    <button class="btn-secondary" data-open-modal="supportModal" style="background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.15);" id="btn-contact-support">
+      <i class="fa-solid fa-comment-dots"></i>
+      <span>Contact Customer Support</span>
+    </button>
+  </section>
+
+</div>
+{% endblock %}

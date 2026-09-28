@@ -1,0 +1,266 @@
+<!-- Quick Action Modals -->
+
+<!-- 1. Transfer Money Modal -->
+<div class="modal-backdrop" id="transferModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--accent-cyan);"></i>
+        <span>Transfer Funds</span>
+      </div>
+      <button class="btn-close-modal" data-close-modal>&times;</button>
+    </div>
+    <form action="{% url 'transfer_money' %}" method="POST" class="modal-body">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">From Account</label>
+        <select name="account_id" class="form-select">
+          {% for acc in all_accounts %}
+          <option value="{{ acc.id }}" {% if acc.is_primary %}selected{% endif %}>
+            {{ acc.get_account_type_display }} ({{ acc.masked_account_number }}) - Available: {{ acc.formatted_available_balance }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Select Saved Beneficiary (Optional)</label>
+        <select id="beneficiarySelect" class="form-select">
+          <option value="">-- Choose a recipient --</option>
+          {% for b in beneficiaries %}
+          <option value="{{ b.id }}" data-account="{{ b.account_number }}" data-name="{{ b.name }}">
+            {{ b.name }} ({{ b.bank_name }} - {{ b.nickname|default:b.account_number }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Recipient Name</label>
+          <input type="text" name="recipient" id="transferRecipientName" class="form-input" placeholder="e.g. Priya Sharma" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Account / UPI ID</label>
+          <input type="text" name="target_account_number" id="transferTargetAccount" class="form-input" placeholder="e.g. 029103948192" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount (INR)</label>
+        <div style="position: relative;">
+          <span style="position: absolute; left: 14px; top: 11px; font-weight: 700; color: var(--text-secondary);">₹</span>
+          <input type="number" step="0.01" min="1" name="amount" class="form-input" style="padding-left: 28px; font-size: 1.15rem; font-weight: 700;" placeholder="5000.00" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Transfer Purpose / Notes</label>
+        <input type="text" name="notes" class="form-input" placeholder="e.g. Monthly Rent, Shared split, Gift">
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+        <button type="button" class="btn-secondary" data-close-modal style="flex: 1;">Cancel</button>
+        <button type="submit" class="btn-primary" style="flex: 2;" id="btn-submit-transfer">
+          <i class="fa-solid fa-paper-plane"></i> Confirm & Transfer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Pay Bill Modal -->
+<div class="modal-backdrop" id="payBillModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-receipt" style="color: var(--accent-amber);"></i>
+        <span>Pay Utilities & Bills</span>
+      </div>
+      <button class="btn-close-modal" data-close-modal>&times;</button>
+    </div>
+    <form action="{% url 'pay_bill' %}" method="POST" class="modal-body">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Bill Category</label>
+        <select name="biller_type" id="billTypeSelect" class="form-select">
+          <option value="Electricity">Electricity (Adani / Tata / MSEB)</option>
+          <option value="Broadband">Broadband & Internet (JioFiber / Airtel)</option>
+          <option value="Mobile">Mobile Postpaid / Recharge</option>
+          <option value="Water">Water Tax & Utilities</option>
+          <option value="Gas">Piped Natural Gas (MGL / IGL)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Biller Name</label>
+        <input type="text" name="biller_name" id="billerNameInput" class="form-input" value="Adani Electricity Mumbai" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Consumer / Account ID</label>
+          <input type="text" name="consumer_id" class="form-input" placeholder="e.g. 100982341" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Amount (INR)</label>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 14px; top: 11px; font-weight: 700; color: var(--text-secondary);">₹</span>
+            <input type="number" step="0.01" min="1" name="amount" id="billAmountInput" class="form-input" style="padding-left: 28px; font-weight: 700;" value="1250.00" required>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+        <button type="button" class="btn-secondary" data-close-modal style="flex: 1;">Cancel</button>
+        <button type="submit" class="btn-primary" style="flex: 2;" id="btn-submit-pay-bill">
+          <i class="fa-solid fa-shield-check"></i> Authorize & Pay
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 3. Deposit Modal -->
+<div class="modal-backdrop" id="depositModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-circle-plus" style="color: var(--accent-emerald);"></i>
+        <span>Deposit Funds</span>
+      </div>
+      <button class="btn-close-modal" data-close-modal>&times;</button>
+    </div>
+    <form action="{% url 'deposit_funds' %}" method="POST" class="modal-body">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Deposit Into Account</label>
+        <select class="form-select" disabled>
+          <option selected>{{ account.get_account_type_display }} ({{ account.masked_account_number }}) - Balance: {{ account.formatted_current_balance }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select name="source" class="form-select">
+          <option value="Instant UPI (GooglePay / PhonePe)">Instant UPI (GooglePay / PhonePe)</option>
+          <option value="NetBanking IMPS / NEFT">NetBanking IMPS / NEFT</option>
+          <option value="Debit Card Deposit">Debit Card Payment Gateway</option>
+          <option value="Cheque Clearing Simulation">Cheque Deposit (Instant Clear)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount (INR)</label>
+        <div style="position: relative;">
+          <span style="position: absolute; left: 14px; top: 11px; font-weight: 700; color: var(--text-secondary);">₹</span>
+          <input type="number" step="0.01" min="10" name="amount" class="form-input" style="padding-left: 28px; font-size: 1.15rem; font-weight: 700;" placeholder="10000.00" required>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+        <button type="button" class="btn-secondary" data-close-modal style="flex: 1;">Cancel</button>
+        <button type="submit" class="btn-primary" style="flex: 2;" id="btn-submit-deposit">
+          <i class="fa-solid fa-check"></i> Complete Deposit
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 4. Withdraw Modal -->
+<div class="modal-backdrop" id="withdrawModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-money-bill-transfer" style="color: var(--accent-rose);"></i>
+        <span>Cash Withdrawal / ATM Pass</span>
+      </div>
+      <button class="btn-close-modal" data-close-modal>&times;</button>
+    </div>
+    <form action="{% url 'withdraw_funds' %}" method="POST" class="modal-body">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">From Account</label>
+        <select class="form-select" disabled>
+          <option selected>{{ account.get_account_type_display }} ({{ account.masked_account_number }}) - Available: {{ account.formatted_available_balance }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Withdrawal Mode</label>
+        <select name="method" class="form-select">
+          <option value="ATM Cardless Cash OTP">ATM Cardless Cash (Generate instant ATM OTP)</option>
+          <option value="Branch Counter Token">Branch Express Counter Cash Token</option>
+          <option value="Linked Digital Wallet">Transfer to Linked Wallet</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount (INR)</label>
+        <div style="position: relative;">
+          <span style="position: absolute; left: 14px; top: 11px; font-weight: 700; color: var(--text-secondary);">₹</span>
+          <input type="number" step="100" min="500" max="50000" name="amount" class="form-input" style="padding-left: 28px; font-size: 1.15rem; font-weight: 700;" placeholder="2000" required>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">Daily cardless cash limit: ₹50,000.00</div>
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+        <button type="button" class="btn-secondary" data-close-modal style="flex: 1;">Cancel</button>
+        <button type="submit" class="btn-primary" style="flex: 2;" id="btn-submit-withdraw">
+          <i class="fa-solid fa-fingerprint"></i> Authorize & Generate OTP
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 5. Support / Contact Modal -->
+<div class="modal-backdrop" id="supportModal">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-headset" style="color: var(--accent-cyan);"></i>
+        <span>24x7 Customer Priority Care</span>
+      </div>
+      <button class="btn-close-modal" data-close-modal>&times;</button>
+    </div>
+    <form action="{% url 'create_ticket' %}" method="POST" class="modal-body">
+      {% csrf_token %}
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.25rem; background: rgba(14, 165, 233, 0.08); padding: 0.85rem; border-radius: var(--radius-md); font-size: 0.82rem; color: var(--text-secondary);">
+        <i class="fa-solid fa-shield-halved" style="color: var(--accent-cyan); font-size: 1.2rem;"></i>
+        <div>
+          <strong>Priority Support Desk:</strong> Dedicated assistance for Platinum customers. Call 1800-200-OMOM or submit a direct query below.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Inquiry Category</label>
+        <select name="category" class="form-select">
+          <option value="account">Account & KYC Services</option>
+          <option value="cards">Card Limits & International Roaming</option>
+          <option value="transfer">Transaction Disputes & Wire Inquiry</option>
+          <option value="loans">Loan Restructuring & Pre-closure</option>
+          <option value="general">General Support</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <input type="text" name="subject" class="form-input" placeholder="Brief subject of your query" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Message / Details</label>
+        <textarea name="message" rows="4" class="form-textarea" placeholder="Describe your question or issue in detail..." required></textarea>
+      </div>
+
+      <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+        <button type="button" class="btn-secondary" data-close-modal style="flex: 1;">Cancel</button>
+        <button type="submit" class="btn-primary" style="flex: 2;" id="btn-submit-support-ticket">
+          <i class="fa-solid fa-paper-plane"></i> Submit Query
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

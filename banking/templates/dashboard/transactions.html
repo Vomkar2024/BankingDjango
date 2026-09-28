@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Transactions & Statements | OMOM Bank{% endblock %}
+
+{% block content %}
+<div class="dashboard-launch-wrapper">
+  <div class="dashboard-header">
+    <div>
+      <h1 class="greeting-title">
+        <i class="fa-solid fa-arrow-right-arrow-left" style="color: var(--accent-cyan); font-size: 1.6rem;"></i>
+        <span>Transaction History & Statements</span>
+      </h1>
+      <p class="greeting-sub">Review detailed transactions, filter by category, or export official statements.</p>
+    </div>
+    <div>
+      <a href="?export=csv{% if query %}&q={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}" class="btn-secondary" style="font-size: 0.85rem;" id="btn-export-csv">
+        <i class="fa-solid fa-file-csv"></i> Download CSV Statement
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="content-box" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+    <form method="GET" action="{% url 'transactions_view' %}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+      <div style="flex: 2; min-width: 240px;">
+        <label class="form-label">Search Keyword / Ref ID</label>
+        <input type="text" name="q" value="{{ query }}" class="form-input" placeholder="e.g. Amazon, Salary, Electricity, TXN982...">
+      </div>
+
+      <div style="flex: 1; min-width: 160px;">
+        <label class="form-label">Category</label>
+        <select name="category" class="form-select">
+          <option value="">All Categories</option>
+          <option value="shopping" {% if selected_category == 'shopping' %}selected{% endif %}>Shopping</option>
+          <option value="salary" {% if selected_category == 'salary' %}selected{% endif %}>Salary & Income</option>
+          <option value="utilities" {% if selected_category == 'utilities' %}selected{% endif %}>Bill Payment</option>
+          <option value="dining" {% if selected_category == 'dining' %}selected{% endif %}>Food & Dining</option>
+          <option value="entertainment" {% if selected_category == 'entertainment' %}selected{% endif %}>Entertainment</option>
+          <option value="transfer" {% if selected_category == 'transfer' %}selected{% endif %}>Transfers</option>
+          <option value="deposit" {% if selected_category == 'deposit' %}selected{% endif %}>Deposits</option>
+          <option value="withdrawal" {% if selected_category == 'withdrawal' %}selected{% endif %}>Cash Withdrawals</option>
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 140px;">
+        <label class="form-label">Type</label>
+        <select name="type" class="form-select">
+          <option value="">Credit & Debit</option>
+          <option value="credit" {% if selected_type == 'credit' %}selected{% endif %}>Credits Only (+)</option>
+          <option value="debit" {% if selected_type == 'debit' %}selected{% endif %}>Debits Only (-)</option>
+        </select>
+      </div>
+
+      <div>
+        <button type="submit" class="btn-primary" style="height: 42px; padding: 0 1.25rem; width: auto;" id="btn-filter-transactions">
+          <i class="fa-solid fa-filter"></i> Apply Filter
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Transactions Table / List -->
+  <div class="content-box">
+    <div class="transaction-list">
+      {% if transactions %}
+        {% for txn in transactions %}
+        <div class="transaction-item">
+          <div class="txn-left">
+            <div class="txn-icon {{ txn.transaction_type }}">
+              {% if txn.category == 'shopping' %}
+              <i class="fa-solid fa-bag-shopping"></i>
+              {% elif txn.category == 'salary' %}
+              <i class="fa-solid fa-arrow-down-left"></i>
+              {% elif txn.category == 'utilities' %}
+              <i class="fa-solid fa-bolt"></i>
+              {% elif txn.category == 'dining' %}
+              <i class="fa-solid fa-utensils"></i>
+              {% elif txn.category == 'entertainment' %}
+              <i class="fa-solid fa-film"></i>
+              {% elif txn.category == 'transfer' %}
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              {% elif txn.category == 'deposit' %}
+              <i class="fa-solid fa-circle-arrow-down"></i>
+              {% elif txn.category == 'withdrawal' %}
+              <i class="fa-solid fa-money-bill-wave"></i>
+              {% else %}
+              <i class="fa-solid fa-receipt"></i>
+              {% endif %}
+            </div>
+            <div class="txn-details">
+              <div class="txn-title">{{ txn.title }}</div>
+              <div class="txn-meta">
+                <span class="txn-badge">{{ txn.get_category_display }}</span>
+                <span>{{ txn.created_at|date:"d M Y, h:i A" }}</span>
+                {% if txn.description %}&bull; <span>{{ txn.description }}</span>{% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="txn-right">
+            <div class="txn-amount {{ txn.transaction_type }}">
+              {{ txn.formatted_amount }}
+            </div>
+            <div class="txn-date" style="font-family: var(--font-mono); font-size: 0.72rem;">
+              Ref: {{ txn.reference_id }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+          <i class="fa-solid fa-receipt" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+          <h3>No transactions match your search filter</h3>
+          <p style="margin-top: 0.5rem;"><a href="{% url 'transactions_view' %}" style="color: var(--accent-cyan);">Clear filters</a></p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

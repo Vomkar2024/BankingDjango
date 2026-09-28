@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Priority Support | OMOM Bank{% endblock %}
+
+{% block content %}
+<div class="dashboard-launch-wrapper">
+  <div class="dashboard-header">
+    <div>
+      <h1 class="greeting-title">
+        <i class="fa-solid fa-headset" style="color: var(--accent-cyan); font-size: 1.6rem;"></i>
+        <span>24x7 Customer Priority Care</span>
+      </h1>
+      <p class="greeting-sub">Direct access to dedicated concierge banking and support ticket tracking.</p>
+    </div>
+    <button class="btn-primary" data-open-modal="supportModal" style="width: auto;" id="btn-raise-ticket">
+      <i class="fa-solid fa-plus-circle"></i> Submit Support Query
+    </button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem;">
+    <!-- Your Support Tickets -->
+    <div class="content-box">
+      <h2 class="section-title" style="margin-bottom: 1.25rem;">Your Support Inquiries</h2>
+      {% if tickets %}
+        <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+          {% for ticket in tickets %}
+          <div style="padding: 1rem; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.02);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--accent-cyan); font-weight: 700;">#{{ ticket.ticket_id }}</span>
+              <span class="balance-pill {% if ticket.status == 'resolved' %}emerald{% endif %}">{{ ticket.get_status_display }}</span>
+            </div>
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem;">{{ ticket.subject }}</h4>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">{{ ticket.message }}</p>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">
+              Category: {{ ticket.get_category_display }} &bull; Submitted {{ ticket.created_at|date:"d M Y, h:i A" }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+          No open support queries. Need help? Click "Submit Support Query" above.
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Contact & FAQ Hub -->
+    <div class="side-stack">
+      <div class="content-box">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem;">Direct Channels</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem; font-size: 0.88rem;">
+          <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(14, 165, 233, 0.15); color: var(--accent-cyan); display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-phone"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600;">24x7 Platinum Helpline</div>
+              <div style="color: var(--text-muted); font-family: var(--font-mono);">1800-200-OMOM (Toll Free)</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-envelope"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600;">Priority Email</div>
+              <div style="color: var(--text-muted);">concierge@omombank.com</div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 0.85rem;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); display: flex; align-items: center; justify-content: center;">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <div>
+              <div style="font-weight: 600;">Head Office</div>
+              <div style="color: var(--text-muted);">One BKC, Bandra Kurla Complex, Mumbai</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

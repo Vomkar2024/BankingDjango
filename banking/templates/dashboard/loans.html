@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}My Loans & Credit Facilities | OMOM Bank{% endblock %}
+
+{% block content %}
+<div class="dashboard-launch-wrapper">
+  <div class="dashboard-header">
+    <div>
+      <h1 class="greeting-title">
+        <i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent-emerald); font-size: 1.6rem;"></i>
+        <span>Loans & Credit Overview</span>
+      </h1>
+      <p class="greeting-sub">Track repayments, check active EMI dates, or explore pre-approved offers.</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem;">
+    <!-- Active Loans -->
+    <div class="content-box">
+      <h2 class="section-title" style="margin-bottom: 1.25rem;">Active Loan Accounts</h2>
+
+      {% if loans %}
+        {% for loan in loans %}
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+              <span class="balance-pill">{{ loan.get_loan_type_display }}</span>
+              <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 0.35rem;">Loan A/C {{ loan.account_number }}</h3>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">Remaining Principal</span>
+              <div style="font-size: 1.45rem; font-weight: 800; color: var(--accent-cyan);">{{ loan.formatted_remaining }}</div>
+            </div>
+          </div>
+
+          <!-- Progress -->
+          <div style="margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+              <span>Repaid: {{ loan.formatted_repaid }} ({{ loan.progress_percentage }}%)</span>
+              <span>Sanctioned: {{ loan.formatted_principal }}</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: {{ loan.progress_percentage }}%;"></div>
+            </div>
+          </div>
+
+          <!-- Details Grid -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem; font-size: 0.85rem;">
+            <div>
+              <div style="color: var(--text-muted);">Monthly EMI</div>
+              <div style="font-weight: 700; color: var(--text-primary);">{{ loan.formatted_emi }}</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted);">Interest Rate</div>
+              <div style="font-weight: 700; color: var(--text-primary);">{{ loan.interest_rate }}% p.a.</div>
+            </div>
+            <div>
+              <div style="color: var(--text-muted);">Next Due Date</div>
+              <div style="font-weight: 700; color: var(--accent-emerald);">{{ loan.next_due_date|date:"d M Y" }}</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color: var(--text-muted);">You currently have no active loans.</p>
+      {% endif %}
+    </div>
+
+    <!-- Loan Pre-Approval Offer -->
+    <div class="side-stack">
+      <div class="content-box" style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid rgba(16, 185, 129, 0.3);">
+        <div style="width: 44px; height: 44px; border-radius: var(--radius-md); background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 1rem;">
+          <i class="fa-solid fa-gift"></i>
+        </div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem;">Pre-Approved Express Credit</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          Based on your high credit score and relationship tier, you have a pre-approved personal credit limit of <strong>₹5,00,000</strong> at 9.99% APR with zero paperwork.
+        </p>
+        <button class="btn-primary" style="background: var(--gradient-emerald);" onclick="alert('Instant pre-approved loan of ₹5,00,000 has been verified for your account!');">
+          <i class="fa-solid fa-check-circle"></i> Claim Instant Loan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

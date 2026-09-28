@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OMOM Bank | Secure Digital Banking{% endblock %}</title>
+  
+  <!-- Modern Typography: Outfit & Inter from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons for Fintech & Banking -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Core Banking CSS -->
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/banking.css' %}">
+
+  <!-- Chart.js for Financial Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Main Top Navigation -->
+    <header class="navbar">
+      <div class="nav-container">
+        <!-- Logo -->
+        <a href="{% url 'dashboard' %}" class="brand-logo" id="nav-brand-logo">
+          <div class="brand-icon-wrapper">
+            <i class="fa-solid fa-building-columns"></i>
+          </div>
+          <span class="brand-text">OMOM<span style="color: var(--accent-cyan);">BANK</span></span>
+          <span class="brand-badge">PRO</span>
+        </a>
+
+        {% if user.is_authenticated %}
+        <!-- Navigation Links -->
+        <ul class="nav-links">
+          <li>
+            <a href="{% url 'dashboard' %}" class="nav-item-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" id="nav-link-dashboard">
+              <i class="fa-solid fa-chart-pie"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'transactions_view' %}" class="nav-item-link {% if request.resolver_match.url_name == 'transactions_view' %}active{% endif %}" id="nav-link-transactions">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              <span>Transactions</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'cards_view' %}" class="nav-item-link {% if request.resolver_match.url_name == 'cards_view' %}active{% endif %}" id="nav-link-cards">
+              <i class="fa-solid fa-credit-card"></i>
+              <span>Cards</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'loans_view' %}" class="nav-item-link {% if request.resolver_match.url_name == 'loans_view' %}active{% endif %}" id="nav-link-loans">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+              <span>Loans</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'support_view' %}" class="nav-item-link {% if request.resolver_match.url_name == 'support_view' %}active{% endif %}" id="nav-link-support">
+              <i class="fa-solid fa-headset"></i>
+              <span>Support</span>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Right Side Nav Actions -->
+        <div class="nav-actions">
+          <!-- Theme Toggle Button -->
+          <button class="nav-btn" data-toggle-theme title="Toggle Theme" id="btn-theme-toggle">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+          </button>
+
+          <!-- Notifications Bell Dropdown -->
+          <div style="position: relative;">
+            <button class="nav-btn" data-dropdown-toggle="notificationsDropdown" title="Notifications" id="btn-notifications">
+              <i class="fa-regular fa-bell"></i>
+              {% if unread_count and unread_count > 0 %}
+              <span class="badge-dot" id="badge-notification-dot"></span>
+              {% endif %}
+            </button>
+
+            <!-- Notifications Dropdown Menu -->
+            <div id="notificationsDropdown" class="dropdown-menu-custom" style="min-width: 320px;">
+              <div class="dropdown-header-custom" style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 700; font-size: 0.9rem;">Notifications</span>
+                {% if unread_count and unread_count > 0 %}
+                <form action="{% url 'mark_notifications_read' %}" method="POST" style="margin: 0;">
+                  {% csrf_token %}
+                  <button type="submit" style="background: none; border: none; color: var(--accent-cyan); font-size: 0.75rem; cursor: pointer;">Mark all read</button>
+                </form>
+                {% endif %}
+              </div>
+              <div style="max-height: 280px; overflow-y: auto;">
+                {% if notifications %}
+                  {% for notif in notifications %}
+                  <div style="padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border-subtle); display: flex; gap: 0.65rem; align-items: flex-start;">
+                    <i class="fa-solid fa-circle-info" style="color: var(--accent-cyan); margin-top: 0.2rem; font-size: 0.85rem;"></i>
+                    <div style="flex: 1;">
+                      <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">{{ notif.title }}</div>
+                      <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem;">{{ notif.message }}</div>
+                      <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 0.2rem;">{{ notif.created_at|timesince }} ago</div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                  <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.82rem;">
+                    No new notifications
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Help Quick Button -->
+          <button class="nav-btn" data-open-modal="supportModal" title="Help & Support" id="btn-quick-help">
+            <i class="fa-regular fa-circle-question"></i>
+          </button>
+
+          <!-- User Profile Dropdown Pill -->
+          <div style="position: relative;">
+            <div class="user-menu-pill" data-dropdown-toggle="profileDropdown" id="user-profile-toggle">
+              <div class="avatar-circle">
+                {{ user.profile.initials|default:"AM" }}
+              </div>
+              <span class="user-name-label">{{ user.first_name|default:user.username }}</span>
+              <i class="fa-solid fa-angle-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+            </div>
+
+            <!-- Profile Dropdown Menu -->
+            <div id="profileDropdown" class="dropdown-menu-custom">
+              <div class="dropdown-header-custom">
+                <div class="dropdown-user-name">{{ user.get_full_name|default:user.username }}</div>
+                <div class="dropdown-user-tier">
+                  <i class="fa-solid fa-shield-halved" style="color: var(--accent-emerald);"></i>
+                  {{ user.profile.get_account_tier_display|default:"Platinum Elite" }} &bull; KYC Verified
+                </div>
+              </div>
+              <a href="{% url 'dashboard' %}" class="dropdown-item-custom">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+              </a>
+              <a href="{% url 'cards_view' %}" class="dropdown-item-custom">
+                <i class="fa-regular fa-credit-card"></i> Manage Cards
+              </a>
+              <a href="{% url 'loans_view' %}" class="dropdown-item-custom">
+                <i class="fa-solid fa-file-invoice-dollar"></i> My Loans
+              </a>
+              <a href="{% url 'support_view' %}" class="dropdown-item-custom">
+                <i class="fa-solid fa-headset"></i> Customer Care
+              </a>
+              <div style="border-top: 1px solid var(--border-subtle); margin: 0.35rem 0;"></div>
+              <a href="{% url 'logout' %}" class="dropdown-item-custom text-danger" id="nav-btn-logout">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+              </a>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <!-- Guest Nav -->
+        <div class="nav-actions">
+          <a href="{% url 'login' %}" class="btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;" id="nav-btn-login">Sign In</a>
+          <a href="{% url 'register' %}" class="btn-primary" style="padding: 0.45rem 1rem; font-size: 0.85rem; width: auto;" id="nav-btn-register">Open Account</a>
+        </div>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- Main Body Container -->
+    <main class="main-content">
+      <!-- Django Flash Messages -->
+      {% if messages %}
+      <div class="messages-container" id="flash-messages">
+        {% for message in messages %}
+        <div class="alert-custom alert-{{ message.tags|default:'info' }}">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            {% if message.tags == 'success' %}
+            <i class="fa-solid fa-circle-check"></i>
+            {% elif message.tags == 'error' %}
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            {% else %}
+            <i class="fa-solid fa-circle-info"></i>
+            {% endif %}
+            <span>{{ message }}</span>
+          </div>
+          <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer style="border-top: 1px solid var(--border-subtle); padding: 1.5rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); background: rgba(10, 14, 23, 0.6);">
+      <div style="max-width: 1280px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          &copy; 2026 OMOM Bank Ltd. All rights reserved. Member FDIC &bull; RBI Regulated &bull; 256-Bit SSL Security.
+        </div>
+        <div style="display: flex; gap: 1.25rem;">
+          <a href="{% url 'support_view' %}" style="color: var(--text-secondary); text-decoration: none;">Security Center</a>
+          <a href="{% url 'support_view' %}" style="color: var(--text-secondary); text-decoration: none;">Privacy Policy</a>
+          <a href="{% url 'support_view' %}" style="color: var(--text-secondary); text-decoration: none;">24x7 Helpline: 1800-200-OMOM</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Global Modals for Quick Actions -->
+  {% include 'dashboard/modals.html' %}
+
+  <!-- Core JavaScript -->
+  <script src="{% static 'js/banking.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
